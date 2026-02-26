@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drow Flowers - Animación</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000; /* Fondo negro total */
+            cursor: crosshair;
+        }
+        canvas {
+            display: block;
+        }
+        #mensaje {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            letter-spacing: 2px;
+            pointer-events: none;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="mensaje">HAZ CLIC PARA CREAR FLORES</div>
+    <canvas id="flowerCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('flowerCanvas');
+        const ctx = canvas.getContext('2d');
+        let flowers = [];
+
+        // Forzar el tamaño del canvas al abrir
+        function initCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', initCanvas);
+        initCanvas();
+
+        class Flower {
+            constructor(x, y) {
+                this.x = x;
+                this.targetY = y;
+                this.currentY = window.innerHeight; // Empieza desde el suelo
+                this.size = 0;
+                this.maxSize = Math.random() * 20 + 10;
+                this.growthSpeed = 4;
+                this.color = `hsl(${Math.random() * 360}, 80%, 60%)`;
+                this.doneGrowing = false;
+            }
+
+            update() {
+                // El tallo sube
+                if (this.currentY > this.targetY) {
+                    this.currentY -= this.growthSpeed;
+                } else {
+                    // La flor crece
+                    if (this.size < this.maxSize) {
+                        this.size += 0.5;
+                    } else {
+                        this.doneGrowing = true;
+                    }
+                }
+            }
+
+            draw() {
+                // Dibujar Tallo
+                ctx.beginPath();
+                ctx.moveTo(this.x, window.innerHeight);
+                ctx.lineTo(this.x, this.currentY);
+                ctx.strokeStyle = "#4CAF50"; // Verde
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Dibujar Pétalos
+                if (this.currentY <= this.targetY) {
+                    ctx.fillStyle = this.color;
+                    for (let i = 0; i < 6; i++) {
+                        ctx.save();
+                        ctx.translate(this.x, this.targetY);
+                        ctx.rotate((Math.PI * 2 / 6) * i);
+                        ctx.beginPath();
+                        ctx.arc(this.size, 0, this.size / 1.5, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                    // Centro de la flor
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.targetY, this.size / 3, 0, Math.PI * 2);
+                    ctx.fillStyle = "white";
+                    ctx.fill();
+                }
+            }
+        }
+
+        // CAPTURAR EL CLIC
+        window.addEventListener('mousedown', (e) => {
+            console.log("Clic detectado en:", e.clientX, e.clientY); // Esto saldrá en la consola (F12)
+            flowers.push(new Flower(e.clientX, e.clientY));
+        });
+
+        function animate() {
+            // Limpiar pantalla
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            flowers.forEach(flower => {
+                flower.update();
+                flower.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
